@@ -1,4 +1,4 @@
-package com.tlt.flutter_zebra_sdk_example
+package com.example.example
 
 import io.flutter.embedding.android.FlutterActivity
 
