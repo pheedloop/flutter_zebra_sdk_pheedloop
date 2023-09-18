@@ -71,7 +71,7 @@ public class SwiftFlutterZebraSdkPlugin: NSObject, FlutterPlugin {
         do {
             var selectedPrinter: CBPeripheral?
             let arguments = call.arguments as! Dictionary<String, AnyObject>
-            var serialNumber = arguments["mac"] as! String
+            var serialNumber = arguments["serialNumber"] as! String
             let data = arguments["data"] as! String
         
             let printQueue = DispatchQueue(label: "com.flutter_zebra_sdk.serial_queue")
