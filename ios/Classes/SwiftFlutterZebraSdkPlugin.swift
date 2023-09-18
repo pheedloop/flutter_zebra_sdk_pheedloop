@@ -39,8 +39,8 @@ public class SwiftFlutterZebraSdkPlugin: NSObject, FlutterPlugin {
         return TcpPrinterConnection(address: ipAddress, andWithPort: port)
     }
     
-    public func createBluetoothConnection(macAddress: String) -> ZebraPrinterConnection{
-        return MfiBtPrinterConnection(serialNumber: macAddress)
+    public func createBluetoothConnection(serialNumber: String) -> ZebraPrinterConnection{
+        return MfiBtPrinterConnection(serialNumber: serialNumber)
     }
     
     public func onPrZplDataOverTcp(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -83,7 +83,7 @@ public class SwiftFlutterZebraSdkPlugin: NSObject, FlutterPlugin {
                 connectedAccessories = EAAccessoryManager.shared().connectedAccessories
             }
             
-            printQueue.sync {
+            printQueue.async {
                 debugPrint("Print Queue 2: Enter Connected Accesories")
                 if(serialNumber != ""){
                     selectedPrinter?.setValue(data, forKey: serialNumber)
