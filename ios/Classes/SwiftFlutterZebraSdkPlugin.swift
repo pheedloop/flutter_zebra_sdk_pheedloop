@@ -4,7 +4,7 @@ import CoreBluetooth
 import ExternalAccessory
 
 public class SwiftFlutterZebraSdkPlugin: NSObject, FlutterPlugin {
-    
+    private var centralManager: CBCentralManager!
     
     public static func register(with registrar: FlutterPluginRegistrar) {
         let channel = FlutterMethodChannel(name: "flutter_zebra_sdk", binaryMessenger: registrar.messenger())
@@ -205,6 +205,20 @@ public class SwiftFlutterZebraSdkPlugin: NSObject, FlutterPlugin {
     }
 
 }
+
+//extension SwiftFlutterZebraSdkPlugin: CBCentralManagerDelegate {
+//  public func centralManagerDidUpdateState(_ central: CBCentralManager) {
+//    if central.state != .poweredOn {
+//      return
+//    }
+//      
+//      scan()
+//  }
+//    
+//    public func scan() {
+//        self.centralManager.scanForPeripherals(withServices: ["7"], options: [])
+//    }
+//}
 
 
 struct ZebraPrinterInfo: Codable {
