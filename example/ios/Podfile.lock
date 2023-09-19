@@ -2,20 +2,43 @@ PODS:
   - Flutter (1.0.0)
   - flutter_zebra_sdk (0.0.1):
     - Flutter
+  - permission_handler_apple (9.1.1):
+    - Flutter
+  - Protobuf (3.24.1)
+  - reactive_ble_mobile (0.0.1):
+    - Flutter
+    - Protobuf (~> 3.5)
+    - SwiftProtobuf (~> 1.0)
+  - SwiftProtobuf (1.23.0)
 
 DEPENDENCIES:
   - Flutter (from `Flutter`)
   - flutter_zebra_sdk (from `.symlinks/plugins/flutter_zebra_sdk/ios`)
+  - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
+  - reactive_ble_mobile (from `.symlinks/plugins/reactive_ble_mobile/ios`)
+
+SPEC REPOS:
+  trunk:
+    - Protobuf
+    - SwiftProtobuf
 
 EXTERNAL SOURCES:
   Flutter:
     :path: Flutter
   flutter_zebra_sdk:
     :path: ".symlinks/plugins/flutter_zebra_sdk/ios"
+  permission_handler_apple:
+    :path: ".symlinks/plugins/permission_handler_apple/ios"
+  reactive_ble_mobile:
+    :path: ".symlinks/plugins/reactive_ble_mobile/ios"
 
 SPEC CHECKSUMS:
   Flutter: f04841e97a9d0b0a8025694d0796dd46242b2854
   flutter_zebra_sdk: b5829f33fdb3ffa7c3f92a8135f0d701d6c3cb87
+  permission_handler_apple: e76247795d700c14ea09e3a2d8855d41ee80a2e6
+  Protobuf: 0c0a3eb3c1207ee14bdbca270dc0b40fa953cacc
+  reactive_ble_mobile: 9ce6723d37ccf701dbffd202d487f23f5de03b4c
+  SwiftProtobuf: b70d65f419fbfe61a2d58003456ca5da58e337d6
 
 PODFILE CHECKSUM: bfd8cb9c5a07b05028ccd5e7d27153963d4bba14
 
