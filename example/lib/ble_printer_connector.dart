@@ -76,9 +76,16 @@ class BlePrinterConnector extends ReactiveState<ConnectionStateUpdate> {
           );
 
           _deviceConnectionController.add(printerUpdate);
+        } else {
+          _deviceConnectionController.add(
+            PrinterConnectionStatusUpdate.withConnectionStateUpdate(
+              update,
+            ),
+          );
         }
 
         _printerConnectionStates[deviceId] = update.connectionState;
+
         _logMessage(
             'ConnectionState for printer $deviceId : ${update.connectionState}');
       },
@@ -102,6 +109,7 @@ class BlePrinterConnector extends ReactiveState<ConnectionStateUpdate> {
     } on Exception catch (e, _) {
       _logMessage("Error disconnecting from a printer: $e");
     } finally {
+      _printerConnectionStates[deviceId] = DeviceConnectionState.disconnected;
       _deviceConnectionController.add(
         PrinterConnectionStatusUpdate(
           deviceId: deviceId,
