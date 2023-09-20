@@ -31,12 +31,17 @@ class BleScanner implements ReactiveState<BleScannerState> {
             scanMode: ScanMode.lowPower,
             requireLocationServicesEnabled: false)
         .listen((device) {
+      final validRssi = device.rssi <= -30 && device.rssi >= -90;
       final knownDeviceIndex = _devices.indexWhere((d) => d.id == device.id);
-      if (knownDeviceIndex >= 0) {
+
+      if (!validRssi) {
+        _devices.removeWhere((element) => device.id == element.id);
+      } else if (knownDeviceIndex >= 0) {
         _devices[knownDeviceIndex] = device;
       } else {
         _devices.add(device);
       }
+
       _pushState();
     }, onError: (Object e) => _logMessage('Device scan fails with error: $e'));
     _pushState();
