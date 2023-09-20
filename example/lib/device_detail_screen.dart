@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
-import 'package:flutter_zebra_sdk_example/ble_device_connector.dart';
+import 'package:flutter_zebra_sdk_example/ble_printer_connector.dart';
 import 'package:flutter_zebra_sdk_example/device_interaction_tab.dart';
 import 'package:flutter_zebra_sdk_example/device_log_tab.dart';
 import 'package:provider/provider.dart';
@@ -11,7 +11,7 @@ class DeviceDetailScreen extends StatelessWidget {
   const DeviceDetailScreen({required this.device, Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) => Consumer<BleDeviceConnector>(
+  Widget build(BuildContext context) => Consumer<BlePrinterConnector>(
         builder: (_, deviceConnector, __) => _DeviceDetail(
           device: device,
           disconnect: deviceConnector.disconnect,

@@ -13,16 +13,16 @@ abstract class $DeviceInteractionViewModel {
   String get deviceId;
   Connectable get connectableStatus;
   DeviceConnectionState get connectionStatus;
-  BleDeviceConnector get deviceConnector;
-  Future<List<Service>> Function() get discoverServices;
+  BlePrinterConnector get deviceConnector;
+  PrinterConnectionStatusUpdate get printerConnectionState;
 
   DeviceInteractionViewModel copyWith({
     DiscoveredDevice? device,
     String? deviceId,
     Connectable? connectableStatus,
     DeviceConnectionState? connectionStatus,
-    BleDeviceConnector? deviceConnector,
-    Future<List<Service>> Function()? discoverServices,
+    BlePrinterConnector? deviceConnector,
+    PrinterConnectionStatusUpdate? printerConnectionState,
   }) =>
       DeviceInteractionViewModel(
         device: device ?? this.device,
@@ -30,7 +30,8 @@ abstract class $DeviceInteractionViewModel {
         connectableStatus: connectableStatus ?? this.connectableStatus,
         connectionStatus: connectionStatus ?? this.connectionStatus,
         deviceConnector: deviceConnector ?? this.deviceConnector,
-        discoverServices: discoverServices ?? this.discoverServices,
+        printerConnectionState:
+            printerConnectionState ?? this.printerConnectionState,
       );
 
   DeviceInteractionViewModel copyUsing(
@@ -41,7 +42,7 @@ abstract class $DeviceInteractionViewModel {
       this.connectableStatus,
       this.connectionStatus,
       this.deviceConnector,
-      this.discoverServices,
+      this.printerConnectionState,
     );
     mutator(change);
     return DeviceInteractionViewModel(
@@ -50,13 +51,13 @@ abstract class $DeviceInteractionViewModel {
       connectableStatus: change.connectableStatus,
       connectionStatus: change.connectionStatus,
       deviceConnector: change.deviceConnector,
-      discoverServices: change.discoverServices,
+      printerConnectionState: change.printerConnectionState,
     );
   }
 
   @override
   String toString() =>
-      "DeviceInteractionViewModel(device: $device, deviceId: $deviceId, connectableStatus: $connectableStatus, connectionStatus: $connectionStatus, deviceConnector: $deviceConnector, discoverServices: $discoverServices)";
+      "DeviceInteractionViewModel(device: $device, deviceId: $deviceId, connectableStatus: $connectableStatus, connectionStatus: $connectionStatus, deviceConnector: $deviceConnector, printerConnectionState: $printerConnectionState)";
 
   @override
   // ignore: avoid_equals_and_hash_code_on_mutable_classes
@@ -68,7 +69,7 @@ abstract class $DeviceInteractionViewModel {
       connectableStatus == other.connectableStatus &&
       connectionStatus == other.connectionStatus &&
       deviceConnector == other.deviceConnector &&
-      const Ignore().equals(discoverServices, other.discoverServices);
+      printerConnectionState == other.printerConnectionState;
 
   @override
   // ignore: avoid_equals_and_hash_code_on_mutable_classes
@@ -79,7 +80,7 @@ abstract class $DeviceInteractionViewModel {
     result = 37 * result + connectableStatus.hashCode;
     result = 37 * result + connectionStatus.hashCode;
     result = 37 * result + deviceConnector.hashCode;
-    result = 37 * result + const Ignore().hash(discoverServices);
+    result = 37 * result + printerConnectionState.hashCode;
     return result;
   }
 }
@@ -91,15 +92,15 @@ class DeviceInteractionViewModel$Change {
     this.connectableStatus,
     this.connectionStatus,
     this.deviceConnector,
-    this.discoverServices,
+    this.printerConnectionState,
   );
 
   DiscoveredDevice device;
   String deviceId;
   Connectable connectableStatus;
   DeviceConnectionState connectionStatus;
-  BleDeviceConnector deviceConnector;
-  Future<List<Service>> Function() discoverServices;
+  BlePrinterConnector deviceConnector;
+  PrinterConnectionStatusUpdate printerConnectionState;
 }
 
 // ignore: avoid_classes_with_only_static_members
@@ -132,16 +133,18 @@ class DeviceInteractionViewModel$ {
   );
 
   static final deviceConnector =
-      Lens<DeviceInteractionViewModel, BleDeviceConnector>(
+      Lens<DeviceInteractionViewModel, BlePrinterConnector>(
     (deviceConnectorContainer) => deviceConnectorContainer.deviceConnector,
     (deviceConnectorContainer, deviceConnector) =>
         deviceConnectorContainer.copyWith(deviceConnector: deviceConnector),
   );
 
-  static final discoverServices =
-      Lens<DeviceInteractionViewModel, Future<List<Service>> Function()>(
-    (discoverServicesContainer) => discoverServicesContainer.discoverServices,
-    (discoverServicesContainer, discoverServices) =>
-        discoverServicesContainer.copyWith(discoverServices: discoverServices),
+  static final printerConnectionState =
+      Lens<DeviceInteractionViewModel, PrinterConnectionStatusUpdate>(
+    (printerConnectionStateContainer) =>
+        printerConnectionStateContainer.printerConnectionState,
+    (printerConnectionStateContainer, printerConnectionState) =>
+        printerConnectionStateContainer.copyWith(
+            printerConnectionState: printerConnectionState),
   );
 }

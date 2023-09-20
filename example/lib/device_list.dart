@@ -10,9 +10,9 @@ class DeviceListScreen extends StatelessWidget {
   const DeviceListScreen({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) => Consumer4<BleScanner, BleScannerState?,
-          BleLogger, BleConnectedDeviceMonitorState>(
-        builder: (_, bleScanner, bleScannerState, bleLogger,
+  Widget build(BuildContext context) => Consumer5<BleScanner, BleScannerState?,
+          BleLogger, LogLevel, BleConnectedDeviceMonitorState>(
+        builder: (_, bleScanner, bleScannerState, bleLogger, logLevel,
                 bleConnectedDeviceMonitorState, __) =>
             _DeviceList(
           scannerState: bleScannerState ??
@@ -107,7 +107,7 @@ class _DeviceListState extends State<_DeviceList> {
                   SwitchListTile(
                     title: const Text("Verbose logging"),
                     value: widget.verboseLogging,
-                    onChanged: (_) => setState(widget.toggleVerboseLogging),
+                    onChanged: (_) => widget.toggleVerboseLogging(),
                   ),
                   ListTile(
                     title: Text(

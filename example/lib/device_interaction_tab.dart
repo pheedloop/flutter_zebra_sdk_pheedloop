@@ -1,9 +1,9 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
-import 'package:flutter_zebra_sdk/flutter_zebra_sdk.dart';
-import 'package:flutter_zebra_sdk_example/ble_device_connector.dart';
-import 'package:flutter_zebra_sdk_example/ble_device_interactor.dart';
-import 'package:flutter_zebra_sdk_example/characteristic_interaction_dialog.dart';
+import 'package:flutter_zebra_sdk_example/ble_printer_connector.dart';
 import 'package:functional_data/functional_data.dart';
 import 'package:provider/provider.dart';
 
@@ -21,18 +21,16 @@ class DeviceInteractionTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) =>
-      Consumer3<BleDeviceConnector, ConnectionStateUpdate, BleDeviceInteractor>(
-        builder: (_, deviceConnector, connectionStateUpdate, serviceDiscoverer,
-                __) =>
+      Consumer2<BlePrinterConnector, PrinterConnectionStatusUpdate>(
+        builder: (_, deviceConnector, printerConnectionStateUpdate, __) =>
             _DeviceInteractionTab(
           viewModel: DeviceInteractionViewModel(
             device: device,
             deviceId: device.id,
             connectableStatus: device.connectable,
-            connectionStatus: connectionStateUpdate.connectionState,
+            connectionStatus: printerConnectionStateUpdate.connectionState,
+            printerConnectionState: printerConnectionStateUpdate,
             deviceConnector: deviceConnector,
-            discoverServices: () =>
-                serviceDiscoverer.discoverServices(device.id),
           ),
         ),
       );
@@ -41,34 +39,7 @@ class DeviceInteractionTab extends StatelessWidget {
 @immutable
 @FunctionalData()
 class DeviceInteractionViewModel extends $DeviceInteractionViewModel {
-  const DeviceInteractionViewModel({
-    required this.device,
-    required this.deviceId,
-    required this.connectableStatus,
-    required this.connectionStatus,
-    required this.deviceConnector,
-    required this.discoverServices,
-  });
-
-  final DiscoveredDevice device;
-  final String deviceId;
-  final Connectable connectableStatus;
-  final DeviceConnectionState connectionStatus;
-  final BleDeviceConnector deviceConnector;
-
-  @CustomEquality(Ignore())
-  final Future<List<Service>> Function() discoverServices;
-
-  bool get deviceConnected =>
-      connectionStatus == DeviceConnectionState.connected;
-
-  void connect() {
-    deviceConnector.connect(deviceId);
-  }
-
-  Future<void> textPrint() async {
-    String data;
-    data = '''
+  static final Uint8List _testString = Uint8List.fromList(utf8.encode('''
     CT~~CD,~CC^~CT~
     ^XA~JS20 - ~JS80
     ^XA~TA018
@@ -109,11 +80,75 @@ class DeviceInteractionViewModel extends $DeviceInteractionViewModel {
     ^FH\^FDLA,ATTXHYFY5QXY0EX2BSKBS6MF4ZW5^FS
     
     ^PQ1,0,1,Y^XZ
-        ''';
+        '''));
+
+  const DeviceInteractionViewModel({
+    required this.device,
+    required this.deviceId,
+    required this.connectableStatus,
+    required this.connectionStatus,
+    required this.deviceConnector,
+    required this.printerConnectionState,
+  });
+
+  final DiscoveredDevice device;
+  final String deviceId;
+  final Connectable connectableStatus;
+  final DeviceConnectionState connectionStatus;
+  final BlePrinterConnector deviceConnector;
+  final PrinterConnectionStatusUpdate printerConnectionState;
+
+  bool get deviceConnected =>
+      connectionStatus == DeviceConnectionState.connected;
+
+  void connect() {
+    deviceConnector.connect(deviceId);
   }
 
   void disconnect() {
     deviceConnector.disconnect(deviceId);
+  }
+
+  Future<void> testPrint() async {
+    if (printerConnectionState.connectionState !=
+        DeviceConnectionState.connected) {
+      return;
+    }
+
+    final targetMtu = printerConnectionState.mtu!;
+    final writeCharacteristic = printerConnectionState.writeCharacteristic!;
+
+    List<Uint8List> chunks = _chunkByteList(_testString, targetMtu);
+
+    try {
+      for (var chunkByteList in chunks) {
+        await writeCharacteristic.write(chunkByteList);
+      }
+    } catch (e) {
+      debugPrint("failed to write chunk: $e");
+    } finally {
+      //disconnect after printing
+      disconnect();
+    }
+  }
+
+  List<Uint8List> _chunkByteList(Uint8List byteList, int chunkSize) {
+    List<Uint8List> chunks = [];
+    int start = 0;
+
+    while (start < byteList.length) {
+      int end = start + chunkSize;
+      if (end > byteList.length) {
+        end = byteList.length;
+      }
+
+      Uint8List chunk = byteList.sublist(start, end);
+      chunks.add(chunk);
+
+      start = end;
+    }
+
+    return chunks;
   }
 }
 
@@ -136,13 +171,6 @@ class _DeviceInteractionTabState extends State<_DeviceInteractionTab> {
   void initState() {
     discoveredServices = [];
     super.initState();
-  }
-
-  Future<void> discoverServices() async {
-    final result = await widget.viewModel.discoverServices();
-    setState(() {
-      discoveredServices = result;
-    });
   }
 
   @override
@@ -186,7 +214,7 @@ class _DeviceInteractionTabState extends State<_DeviceInteractionTab> {
                       ),
                       ElevatedButton(
                         onPressed: widget.viewModel.deviceConnected
-                            ? widget.viewModel.textPrint
+                            ? widget.viewModel.testPrint
                             : null,
                         child: const Text("Test Print"),
                       ),
@@ -196,149 +224,12 @@ class _DeviceInteractionTabState extends State<_DeviceInteractionTab> {
                             : null,
                         child: const Text("Disconnect"),
                       ),
-                      ElevatedButton(
-                        onPressed: widget.viewModel.deviceConnected
-                            ? discoverServices
-                            : null,
-                        child: const Text("Discover Services"),
-                      ),
                     ],
                   ),
                 ),
-                if (widget.viewModel.deviceConnected)
-                  _ServiceDiscoveryList(
-                    deviceId: widget.viewModel.deviceId,
-                    discoveredServices: discoveredServices,
-                  ),
               ],
             ),
           ),
         ],
       );
-}
-
-class _ServiceDiscoveryList extends StatefulWidget {
-  const _ServiceDiscoveryList({
-    required this.deviceId,
-    required this.discoveredServices,
-    Key? key,
-  }) : super(key: key);
-
-  final String deviceId;
-  final List<Service> discoveredServices;
-
-  @override
-  _ServiceDiscoveryListState createState() => _ServiceDiscoveryListState();
-}
-
-class _ServiceDiscoveryListState extends State<_ServiceDiscoveryList> {
-  late final List<int> _expandedItems;
-
-  @override
-  void initState() {
-    _expandedItems = [];
-    super.initState();
-  }
-
-  String _characteristicSummary(Characteristic c) {
-    final props = <String>[];
-    if (c.isReadable) {
-      props.add("read");
-    }
-    if (c.isWritableWithoutResponse) {
-      props.add("write without response");
-    }
-    if (c.isWritableWithResponse) {
-      props.add("write with response");
-    }
-    if (c.isNotifiable) {
-      props.add("notify");
-    }
-    if (c.isIndicatable) {
-      props.add("indicate");
-    }
-
-    return props.join("\n");
-  }
-
-  Widget _characteristicTile(Characteristic characteristic) => ListTile(
-        onTap: () => showDialog<void>(
-          context: context,
-          builder: (context) =>
-              CharacteristicInteractionDialog(characteristic: characteristic),
-        ),
-        title: Text(
-          '${characteristic.id}\n(${_characteristicSummary(characteristic)})',
-          style: const TextStyle(
-            fontSize: 14,
-          ),
-        ),
-      );
-
-  List<ExpansionPanel> buildPanels() {
-    final panels = <ExpansionPanel>[];
-
-    widget.discoveredServices.asMap().forEach(
-          (index, service) => panels.add(
-            ExpansionPanel(
-              body: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Padding(
-                    padding: EdgeInsetsDirectional.only(start: 16.0),
-                    child: Text(
-                      'Characteristics',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: service.characteristics
-                        .map(_characteristicTile)
-                        .toList(),
-                  ),
-                ],
-              ),
-              headerBuilder: (context, isExpanded) => ListTile(
-                title: Text(
-                  '${service.id}',
-                  style: const TextStyle(fontSize: 14),
-                ),
-              ),
-              isExpanded: _expandedItems.contains(index),
-            ),
-          ),
-        );
-
-    return panels;
-  }
-
-  @override
-  Widget build(BuildContext context) => widget.discoveredServices.isEmpty
-      ? const SizedBox()
-      : SafeArea(
-          top: false,
-          child: Padding(
-            padding: const EdgeInsetsDirectional.only(
-              top: 20.0,
-              start: 20.0,
-              end: 20.0,
-            ),
-            child: ExpansionPanelList(
-              expansionCallback: (int index, bool isExpanded) {
-                setState(() {
-                  if (isExpanded) {
-                    _expandedItems.remove(index);
-                  } else {
-                    _expandedItems.add(index);
-                  }
-                });
-              },
-              children: buildPanels(),
-            ),
-          ),
-        );
 }
