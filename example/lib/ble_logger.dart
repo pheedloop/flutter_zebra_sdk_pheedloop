@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
+import 'package:flutter_zebra_sdk_example/reactive_state.dart';
 import 'package:intl/intl.dart';
 
-class BleLogger {
+class BleLogger implements ReactiveState<LogLevel> {
   BleLogger({
     required FlutterReactiveBle ble,
   }) : _ble = ble;
@@ -21,6 +24,16 @@ class BleLogger {
 
   bool get verboseLogging => _ble.logLevel == LogLevel.verbose;
 
-  void toggleVerboseLogging() =>
-      _ble.logLevel = verboseLogging ? LogLevel.none : LogLevel.verbose;
+  void toggleVerboseLogging() {
+    _ble.logLevel = verboseLogging ? LogLevel.none : LogLevel.verbose;
+    _logLevelController.add(_ble.logLevel);
+  }
+
+  final _logLevelController = StreamController<LogLevel>();
+
+  Stream<LogLevel> get state => _logLevelController.stream;
+
+  void dispose() {
+    _logLevelController.close();
+  }
 }
